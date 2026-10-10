@@ -1,0 +1,78 @@
+@model List<TodoItem>
+@{
+    ViewData["Title"] = "Tasks";
+    int page = ViewBag.Page;
+    int totalPages = ViewBag.TotalPages;
+    string? searchDate = ViewBag.SearchDate;
+}
+
+<h2>TodoItem List</h2>
+
+<a class="btn btn-primary mb-3" asp-action="Create">Add New Task</a>
+
+<form method="get" asp-action="Index" class="d-flex gap-2 mb-3">
+    <input type="date" name="searchDate" value="@searchDate" class="form-control w-auto" />
+    <button type="submit" class="btn btn-primary">Search</button>
+    @if (!string.IsNullOrEmpty(searchDate))
+    {
+        <a class="btn btn-outline-secondary" asp-action="Index">Clear</a>
+    }
+</form>
+
+<table class="table table-bordered align-middle bg-white">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Deadline</th>
+            <th>File</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+    @if (!Model.Any())
+    {
+        <tr><td colspan="5" class="text-center text-muted">No tasks found.</td></tr>
+    }
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.Title</td>
+            <td>@item.Description</td>
+            <td class="@(item.Deadline < DateTime.Now ? "table-danger" : "")">
+                @item.Deadline.ToString("yyyy-MM-dd HH:mm")
+            </td>
+            <td>
+                @if (!string.IsNullOrEmpty(item.FilePath))
+                {
+                    <a class="btn btn-success btn-sm" asp-action="Download" asp-route-id="@item.Id">Download</a>
+                }
+            </td>
+            <td>
+                <a class="btn btn-warning btn-sm" asp-action="Edit" asp-route-id="@item.Id">Edit</a>
+                <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline"
+                      onsubmit="return confirm('Delete this task?');">
+                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                </form>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+<nav>
+    <ul class="pagination justify-content-center">
+        <li class="page-item @(page <= 1 ? "disabled" : "")">
+            <a class="page-link" asp-action="Index" asp-route-page="@(page - 1)" asp-route-searchDate="@searchDate">Previous</a>
+        </li>
+        @for (int i = 1; i <= totalPages; i++)
+        {
+            <li class="page-item @(i == page ? "active" : "")">
+                <a class="page-link" asp-action="Index" asp-route-page="@i" asp-route-searchDate="@searchDate">@i</a>
+            </li>
+        }
+        <li class="page-item @(page >= totalPages ? "disabled" : "")">
+            <a class="page-link" asp-action="Index" asp-route-page="@(page + 1)" asp-route-searchDate="@searchDate">Next</a>
+        </li>
+    </ul>
+</nav>
